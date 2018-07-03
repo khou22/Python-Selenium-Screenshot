@@ -1,17 +1,17 @@
+# Derivation of: http://seleniumpythonqa.blogspot.com/2015/08/generate-full-page-screenshot-in-chrome.html
 import os
 import time
-
+import sys
+from selenium import webdriver
 from PIL import Image
 
 def fullpage_screenshot(driver, file):
-
-        print("Starting chrome full page screenshot workaround ...")
 
         total_width = driver.execute_script("return document.body.offsetWidth")
         total_height = driver.execute_script("return document.body.parentNode.scrollHeight")
         viewport_width = driver.execute_script("return document.body.clientWidth")
         viewport_height = driver.execute_script("return window.innerHeight")
-        print("Total: ({0}, {1}), Viewport: ({2},{3})".format(total_width, total_height,viewport_width,viewport_height))
+        # print("Total: ({0}, {1}), Viewport: ({2},{3})".format(total_width, total_height,viewport_width,viewport_height))
         rectangles = []
 
         i = 0
@@ -28,7 +28,7 @@ def fullpage_screenshot(driver, file):
                 if top_width > total_width:
                     top_width = total_width
 
-                print("Appending rectangle ({0},{1},{2},{3})".format(ii, i, top_width, top_height))
+                # print("Appending rectangle ({0},{1},{2},{3})".format(ii, i, top_width, top_height))
                 rectangles.append((ii, i, top_width,top_height))
 
                 ii = ii + viewport_width
@@ -42,11 +42,11 @@ def fullpage_screenshot(driver, file):
         for rectangle in rectangles:
             if not previous is None:
                 driver.execute_script("window.scrollTo({0}, {1})".format(rectangle[0], rectangle[1]))
-                print("Scrolled To ({0},{1})".format(rectangle[0], rectangle[1]))
+                # print("Scrolled To ({0},{1})".format(rectangle[0], rectangle[1]))
                 time.sleep(0.2)
 
             file_name = "part_{0}.png".format(part)
-            print("Capturing {0} ...".format(file_name))
+            # print("Capturing {0} ...".format(file_name))
 
             driver.get_screenshot_as_file(file_name)
             screenshot = Image.open(file_name)
@@ -56,7 +56,7 @@ def fullpage_screenshot(driver, file):
             else:
                 offset = (rectangle[0], rectangle[1])
 
-            print("Adding to stitched image with offset ({0}, {1})".format(offset[0],offset[1]))
+            # print("Adding to stitched image with offset ({0}, {1})".format(offset[0],offset[1]))
             stitched_image.paste(screenshot, offset)
 
             del screenshot
@@ -65,5 +65,18 @@ def fullpage_screenshot(driver, file):
             previous = rectangle
 
         stitched_image.save(file)
-        print("Finishing chrome full page screenshot workaround...")
+        # print("Finishing chrome full page screenshot workaround...")
         return True
+
+def screenshot(url, file_dest):
+    # Chrome profile
+    options = webdriver.ChromeOptions()
+    # options.add_argument("user-data-dir=C:\\/Users/k.hou/Library/Application Support/Google/Chrome") #Path to your chrome profile
+
+    driver = webdriver.Chrome("/usr/local/bin/chromedriver/chromedriver", chrome_options=options)
+
+    driver.get(url)
+    input("Press Enter to continue...")
+
+    fullpage_screenshot(driver, file_dest)
+
